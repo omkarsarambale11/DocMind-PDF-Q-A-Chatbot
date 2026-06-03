@@ -1,37 +1,37 @@
-# DocMind: PDF Q&A RAG Chatbot
+# DocMind — PDF Q&A Chatbot
 
-DocMind is a robust, production-ready Retrieval-Augmented Generation (RAG) chatbot application. It enables users to upload any PDF document, automatically extracts and chunks its contents, embeds them using local sentence-transformers, indexes them with FAISS, and provides highly-grounded answers to user queries using Google's Gemini models with a multi-model failover mechanism.
-
----
-
-## 🚀 Key Features
-
-*   **Offline Local Embeddings**: Uses the `all-MiniLM-L6-v2` model from Hugging Face (`sentence-transformers`) to generate 384-dimensional dense vectors locally—no external API calls or costs for embedding.
-*   **In-Memory Vector Search**: Employs **FAISS** (Facebook AI Similarity Search) for ultra-fast, lightweight similarity searches.
-*   **Zero-Hallucination Grounding**: Configured with a system instruction that forces the LLM to reply *only* using retrieved context or explicitly state if it is not found.
-*   **Robust Multi-Model Failover**: Sequentially retries candidate models (`gemini-flash-lite-latest`, `gemini-2.0-flash-lite`, `gemini-2.0-flash`) in case of rate-limiting, quota exhaustion, or API version issues.
-*   **Interactive React UI**: Features a sleek, modern chat interface with drag-and-drop file uploading, auto-scrolling chat history, processing indicator, and an interactive drawer to inspect retrieved sources.
-*   **Proxy-Backed Dev Setup**: Vite is pre-configured to proxy API requests to FastAPI, bypassing CORS issues entirely during local development.
+Upload a PDF, ask questions about it in plain English. The app finds the relevant sections and uses Google's Gemini to answer — strictly from your document, not from the model's general knowledge.
 
 ---
 
-## 🛠️ Tech Stack
+## What it does
 
-*   **Backend**: Python 3.10+, FastAPI, Uvicorn, LangChain, FAISS (CPU), PyMuPDF (`fitz`), Google Generative AI SDK, `python-dotenv`
-*   **Frontend**: React 18, Vite, Vanilla CSS
+- Extracts text from any uploaded PDF using PyMuPDF
+- Splits the text into overlapping chunks and embeds them locally using `all-MiniLM-L6-v2`
+- Stores vectors in a FAISS index (in memory, no database needed)
+- On each question, retrieves the top 5 matching chunks and sends them to Gemini with a strict grounding prompt
+- If the answer isn't in the document, it says so instead of making something up
+- Falls back across multiple Gemini models (`gemini-flash-lite-latest` → `gemini-2.0-flash-lite` → `gemini-2.0-flash`) if one hits a quota limit
 
 ---
 
-## 📂 Project Structure
+## Stack
 
-```text
+**Backend:** Python 3.10+, FastAPI, LangChain, FAISS (CPU), PyMuPDF, Google Generative AI SDK, python-dotenv
+
+**Frontend:** React 18, Vite, plain CSS
+
+---
+
+## Project structure
+
 Rag_chatbot/
 ├── backend/
-│   ├── main.py            # FastAPI entrypoint (upload, chat, and health check endpoints)
-│   ├── rag_pipeline.py    # Core RAG pipeline (extraction, chunking, embedding, vector store, generation)
-│   ├── requirements.txt   # Python package dependencies
-│   ├── .env.example       # Template for environment configuration
-│   └── .env               # Environment secrets (ignored by git)
+│   ├── main.py             # FastAPI endpoints (upload, chat, health)
+│   ├── rag_pipeline.py     # Extraction, chunking, embedding, FAISS, generation
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── .env                # Not committed — add your API key here
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
@@ -45,196 +45,151 @@ Rag_chatbot/
 │   ├── index.html
 │   ├── vite.config.js
 │   └── package.json
-├── .gitignore             # Root git ignore file (protects venv, node_modules, keys)
-└── README.md              # Documentation
-```
+├── .gitignore
+└── README.md
 
 ---
 
-## 💻 Local Development Setup
+## Setup
 
 ### Prerequisites
-*   **Python**: Version `3.10` or higher
-*   **Node.js**: Version `18` or higher
-*   **Gemini API Key**: Retrieve a free key from the [Google AI Studio Key Manager](https://aistudio.google.com/app/apikey)
+
+- Python 3.10 or higher
+- Node.js 18 or higher
+- Gemini API key — get one free at [Google AI Studio](https://aistudio.google.com/app/apikey)
 
 ---
 
-### Backend Configuration
+### Backend
 
-1.  **Navigate into the backend directory**:
-    ```bash
-    cd backend
-    ```
+```bash
+cd backend
+```
 
-2.  **Create and activate a virtual environment**:
-    *   **Windows (PowerShell/CMD)**:
-        ```bash
-        python -m venv venv
-        venv\Scripts\activate
-        ```
-    *   **macOS / Linux**:
-        ```bash
-        python3 -m venv venv
-        source venv/bin/activate
-        ```
+Create and activate a virtual environment:
 
-3.  **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-    > 📝 *Note: During the first run, the app will download the `all-MiniLM-L6-v2` embedding model (~90MB) from Hugging Face. This will be cached locally for all subsequent runs.*
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
 
-4.  **Configure environment variables**:
-    Copy the sample configuration file and create a `.env` file:
-    *   **Windows**:
-        ```powershell
-        copy .env.example .env
-        ```
-    *   **macOS / Linux**:
-        ```bash
-        cp .env.example .env
-        ```
+# macOS / Linux
+python3 -m venv venv
+source venv/bin/activate
+```
 
-    Open the `.env` file and insert your Gemini API Key:
-    ```env
-    GEMINI_API_KEY=your_actual_gemini_api_key_here
-    ```
+Install dependencies:
 
-5.  **Start the FastAPI server**:
-    ```bash
-    uvicorn main:app --reload --host 127.0.0.1 --port 8000
-    ```
-    *   API running at: [http://localhost:8000](http://localhost:8000)
-    *   Interactive API Documentation (Swagger UI): [http://localhost:8000/docs](http://localhost:8000/docs)
+```bash
+pip install -r requirements.txt
+```
+
+> First run will download the `all-MiniLM-L6-v2` model (~90MB) from Hugging Face. It gets cached after that.
+
+Copy the env template and add your key:
+
+```bash
+# Windows
+copy .env.example .env
+
+# macOS / Linux
+cp .env.example .env
+```
+
+Open `.env` and set:
+GEMINI_API_KEY=your_actual_gemini_api_key_here
+Start the server:
+
+```bash
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+API runs at `http://localhost:8000`. Swagger docs at `http://localhost:8000/docs`.
 
 ---
 
-### Frontend Configuration
+### Frontend
 
-1.  **Navigate into the frontend directory**:
-    ```bash
-    cd ../frontend
-    ```
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
 
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-3.  **Start the development server**:
-    ```bash
-    npm run dev
-    ```
-    *   Frontend running at: [http://localhost:5173](http://localhost:5173)
+Frontend runs at `http://localhost:5173`. Vite proxies all `/upload`, `/chat`, and `/health` requests to port 8000, so no CORS config is needed locally.
 
 ---
 
-## 📡 API Reference
+## API
 
 ### `GET /health`
-Liveness probe to verify that the backend API is up and running.
-*   **Response**:
-    ```json
-    { "status": "ok" }
-    ```
+
+```json
+{ "status": "ok" }
+```
 
 ### `POST /upload`
-Uploads a PDF file, extracts its text, builds chunks, embeds them, and indexes them in a local FAISS database.
-*   **Content-Type**: `multipart/form-data`
-*   **Body**: `file` (Binary PDF File)
-*   **Response**:
-    ```json
-    {
-      "status": "ready",
-      "chunk_count": 142
-    }
-    ```
+
+Accepts a PDF via `multipart/form-data` (field name: `file`). Extracts, chunks, embeds, and indexes it.
+
+```json
+{
+  "status": "ready",
+  "chunk_count": 142
+}
+```
 
 ### `POST /chat`
-Queries the vector database for the top matches and passes them along with the question to Gemini.
-*   **Body**:
-    ```json
-    {
-      "question": "What are the core capabilities of the model?"
-    }
-    ```
-*   **Response**:
-    ```json
-    {
-      "answer": "According to the document, the model is capable of...",
-      "sources": [
-        {
-          "chunk_index": 12,
-          "text": "The model exhibits advanced capabilities in multi-modal tasks..."
-        }
-      ]
-    }
-    ```
+
+```json
+{ "question": "What are the main findings?" }
+```
+
+```json
+{
+  "answer": "According to the document...",
+  "sources": [
+    { "chunk_index": 12, "text": "The model exhibits..." }
+  ]
+}
+```
 
 ---
 
-## ⚙️ RAG Hyperparameters
+## Tuning retrieval
 
-If you want to tune the retrieval performance, you can adjust the values at the top of `backend/rag_pipeline.py`:
+These constants are at the top of `backend/rag_pipeline.py`:
 
-| Constant | Default Value | Description |
+| Constant | Default | What it controls |
 | :--- | :--- | :--- |
-| `CHUNK_SIZE` | `500` | Target character count for each extracted text chunk. |
-| `CHUNK_OVERLAP` | `50` | Number of characters to overlap between sequential chunks to preserve context across boundaries. |
-| `TOP_K` | `5` | The number of nearest-neighbor chunks retrieved from the FAISS database to feed to the LLM. |
-| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | The local sentence-transformers model utilized for mapping text to vectors. |
+| `CHUNK_SIZE` | `500` | Characters per chunk |
+| `CHUNK_OVERLAP` | `50` | Overlap between adjacent chunks |
+| `TOP_K` | `5` | Chunks retrieved per query |
+| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Local embedding model |
+
+Smaller chunks give more precise retrieval but may lose context within a single idea. Larger chunks preserve context but dilute the semantic signal. 500/50 is a reasonable starting point for most documents.
 
 ---
 
-## 🚢 Git & GitHub Deployment Guide
+## Pushing to GitHub
 
-Follow these steps to safely initialize Git and push the project to your GitHub repository:
-
-### 1. Initialize Git Repository
-In the root directory of the project, run:
 ```bash
+# From the project root
 git init
-```
-
-### 2. Verify `.gitignore` is Configured
-Ensure you have the `.gitignore` file in your root folder. This file prevents committing heavy dependencies (`node_modules/`, `venv/`), environment configurations (`.env`), and OS/IDE cache folders to the public repository.
-> ⚠️ **IMPORTANT**: Never publish your `.env` file or commit your real API keys. If you accidentally push your key, immediately revoke it on [Google AI Studio](https://aistudio.google.com/app/apikey).
-
-Verify which files will be tracked:
-```bash
-git status
-```
-*Make sure `.env`, `venv/`, and `node_modules/` are not listed under untracked files.*
-
-### 3. Commit Code
-```bash
+git status  # confirm .env, venv/, and node_modules/ are not listed
 git add .
-git commit -m "feat: initial commit of PDF RAG Chatbot with FastAPI and React"
-```
-
-### 4. Create and Link a GitHub Repository
-1. Go to [GitHub](https://github.com) and create a new repository (do not initialize it with a README or license since you already have them locally).
-2. Copy the remote URL (HTTPS or SSH).
-3. Associate it with your local repository and push:
-```bash
+git commit -m "feat: initial commit"
 git branch -M main
 git remote add origin <your_github_repo_url>
 git push -u origin main
 ```
 
+Never commit your `.env` file. If you accidentally push your API key, revoke it immediately at [Google AI Studio](https://aistudio.google.com/app/apikey).
+
 ---
 
-## 🌐 Production Deployment Options
+## Deploying
 
-### Backend (FastAPI)
-You can deploy the FastAPI server to services like **Render**, **Railway**, or **Heroku**:
-1. Add a production server script command in backend (e.g. `gunicorn -k uvicorn.workers.UvicornWorker main:app`).
-2. Add your `GEMINI_API_KEY` as an environment variable in the dashboard of your hosting provider.
-3. Make sure to update the frontend API target URL if no longer proxied by Vite.
+**Backend:** Render, Railway, or Heroku work fine. Use `gunicorn -k uvicorn.workers.UvicornWorker main:app` as the start command and set `GEMINI_API_KEY` as an environment variable in the dashboard.
 
-### Frontend (React/Vite)
-You can build and deploy the React frontend to **Vercel**, **Netlify**, or **GitHub Pages**:
-1. Run `npm run build` inside `frontend/` to output static assets to `frontend/dist/`.
-2. Deploy the `dist` folder to your provider.
-3. When using separate hosting providers, configure CORS in `backend/main.py` by adding the production frontend domain to `allow_origins`.
+**Frontend:** Build with `npm run build` inside `frontend/`, then deploy the `dist/` folder to Vercel or Netlify. If the backend is on a separate domain, add that domain to `allow_origins` in `backend/main.py`.
