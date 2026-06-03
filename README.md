@@ -25,6 +25,7 @@ Upload a PDF, ask questions about it in plain English. The app finds the relevan
 
 ## Project structure
 
+```text
 Rag_chatbot/
 ├── backend/
 │   ├── main.py             # FastAPI endpoints (upload, chat, health)
@@ -47,6 +48,7 @@ Rag_chatbot/
 │   └── package.json
 ├── .gitignore
 └── README.md
+```
 
 ---
 
