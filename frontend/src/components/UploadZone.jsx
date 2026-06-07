@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 
+const BASE = import.meta.env.VITE_API_URL || ''
+
 export default function UploadZone({ onSuccess, onError }) {
   const [state, setState] = useState('idle')
   const [fileInfo, setFileInfo] = useState(null)
@@ -18,7 +20,7 @@ export default function UploadZone({ onSuccess, onError }) {
     fd.append('file', file)
 
     try {
-      const res = await fetch('/upload', { method: 'POST', body: fd })
+      const res = await fetch(`${BASE}/upload`, { method: 'POST', body: fd })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.detail || `Upload failed (${res.status})`)

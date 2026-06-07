@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react'
 import UploadZone from './components/UploadZone'
 import ChatWindow from './components/ChatWindow'
 
+const BASE = import.meta.env.VITE_API_URL || ''
+
 export default function App() {
   const [docInfo, setDocInfo] = useState(null)
   const [messages, setMessages] = useState([])
@@ -34,7 +36,7 @@ export default function App() {
     setIsLoading(true)
 
     try {
-      const res = await fetch('/chat', {
+      const res = await fetch(`${BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: question.trim() }),
