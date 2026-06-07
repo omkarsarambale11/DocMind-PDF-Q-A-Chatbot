@@ -11,3 +11,4 @@ pymupdf
 google-generativeai
 tiktoken
 langchain-text-splitters
+huggingface-hub

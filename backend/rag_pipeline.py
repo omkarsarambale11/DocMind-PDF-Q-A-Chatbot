@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
 TOP_K = 5
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "paraphrase-MiniLM-L3-v2"
 
 SYSTEM_PROMPT = (
     "You are a helpful assistant. Answer ONLY using the provided context. "
