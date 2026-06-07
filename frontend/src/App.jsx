@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react'
 import UploadZone from './components/UploadZone'
 import ChatWindow from './components/ChatWindow'
 
-const BASE = import.meta.env.VITE_API_URL || ''
+const BASE = "https://docmind-pdf-q-a-chatbot-production.up.railway.app"
+
 
 export default function App() {
   const [docInfo, setDocInfo] = useState(null)

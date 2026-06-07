@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 
-const BASE = import.meta.env.VITE_API_URL || ''
+const BASE = 'https://docmind-pdf-q-a-chatbot-production.up.railway.app'
 
 export default function UploadZone({ onSuccess, onError }) {
   const [state, setState] = useState('idle')
