@@ -10,3 +10,4 @@ sentence-transformers
 pymupdf
 google-generativeai
 tiktoken
+langchain-text-splitters
