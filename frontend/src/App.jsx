@@ -1,15 +1,46 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import UploadZone from './components/UploadZone'
 import ChatWindow from './components/ChatWindow'
 
 const BASE = "https://docmind-pdf-q-a-chatbot-production.up.railway.app"
 
+const STORAGE_KEYS = {
+  DOC_INFO: 'docmind_doc_info',
+  MESSAGES: 'docmind_messages',
+}
+
+function loadFromStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
 
 export default function App() {
-  const [docInfo, setDocInfo] = useState(null)
-  const [messages, setMessages] = useState([])
+  const [docInfo, setDocInfo] = useState(() => loadFromStorage(STORAGE_KEYS.DOC_INFO, null))
+  const [messages, setMessages] = useState(() => loadFromStorage(STORAGE_KEYS.MESSAGES, []))
   const [isLoading, setIsLoading] = useState(false)
   const [toasts, setToasts] = useState([])
+
+  // Persist docInfo to localStorage
+  useEffect(() => {
+    if (docInfo) {
+      localStorage.setItem(STORAGE_KEYS.DOC_INFO, JSON.stringify(docInfo))
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.DOC_INFO)
+    }
+  }, [docInfo])
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages))
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.MESSAGES)
+    }
+  }, [messages])
 
   const showToast = useCallback((message) => {
     const id = Date.now()
@@ -75,7 +106,7 @@ export default function App() {
         <div className="sidebar-body">
           <div>
             <p className="sidebar-section-title">Document</p>
-            <UploadZone onSuccess={handleUploadSuccess} onError={showToast} />
+            <UploadZone onSuccess={handleUploadSuccess} onError={showToast} initialFileInfo={docInfo ? { filename: docInfo.filename, chunkCount: docInfo.chunkCount } : null} />
           </div>
 
           {docInfo && (

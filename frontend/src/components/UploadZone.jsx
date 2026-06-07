@@ -2,9 +2,9 @@ import { useState, useRef, useCallback } from 'react'
 
 const BASE = 'https://docmind-pdf-q-a-chatbot-production.up.railway.app'
 
-export default function UploadZone({ onSuccess, onError }) {
-  const [state, setState] = useState('idle')
-  const [fileInfo, setFileInfo] = useState(null)
+export default function UploadZone({ onSuccess, onError, initialFileInfo }) {
+  const [state, setState] = useState(initialFileInfo ? 'done' : 'idle')
+  const [fileInfo, setFileInfo] = useState(initialFileInfo || null)
   const [dragActive, setDragActive] = useState(false)
   const inputRef = useRef(null)
 
@@ -101,7 +101,7 @@ export default function UploadZone({ onSuccess, onError }) {
       aria-label="Upload PDF"
       onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
     >
-      <input ref={inputRef} type="file" accept=".pdf" onChange={onInputChange} tabIndex={-1} />
+      <input ref={inputRef} type="file" accept=".pdf" onChange={onInputChange} tabIndex={-1} style={{ pointerEvents: 'none' }} />
       <svg className="upload-icon" viewBox="0 0 44 44" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M6 4h18l8 8v24a3 3 0 01-3 3H9a3 3 0 01-3-3V7a3 3 0 013-3z" />
         <path d="M24 4v8h8" />
